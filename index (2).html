@@ -1,0 +1,925 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>HOOPS MENA Fan Zone</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800;900&family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: HUD on top, scrolling screen in the middle, 5-tab bar at the bottom. The match is a side-on court with a timing meter underneath. Dark arena look by design, matching the league's night-game feel. */
+:root{--ink:#0a0f1e;--panel:#121a31;--panel2:#1b2646;--line:#2b3963;--chalk:#f3efe6;--mute:#9aa6c8;--ball:#ff7a2f;--blue:#4f8cff;--good:#3ddc97;--warn:#ffc857;--bad:#ff5d6c;--fd:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;--fb:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark}
+:root[lang="ar"]{--fd:"Cairo",system-ui,sans-serif;--fb:"Cairo",system-ui,sans-serif}
+:root[lang="ar"] *{letter-spacing:0!important}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ink);background-image:radial-gradient(800px 420px at 85% -8%,#1d2c5c 0,transparent 65%);color:var(--chalk);font:500 15px/1.45 var(--fb);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+input{font:inherit}
+:focus-visible{outline:2px solid var(--chalk);outline-offset:2px}
+.app{height:100%;max-width:1000px;margin:0 auto;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.hud{display:flex;align-items:center;gap:8px;padding-block:10px;flex-wrap:wrap}
+.logo{font:900 26px/1 var(--fd);letter-spacing:.05em;margin-inline-end:auto;display:flex;align-items:center;gap:8px}
+.logo i{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff9a57,#ff7a2f 55%,#c9490d);display:block}
+.logo span{color:var(--ball)}
+.chip{font:800 17px/1 var(--fd);letter-spacing:.03em;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 12px;display:inline-flex;gap:6px;align-items:center;white-space:nowrap;color:var(--chalk)}
+.chip small{font:600 11px var(--fb);color:var(--mute);letter-spacing:.04em}
+button.chip{cursor:pointer}
+.screen{overflow-y:auto;padding-block:6px 22px;min-width:0}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding-block:8px 6px;border-top:1px solid var(--line)}
+.app.inmatch .tabs{display:none}
+.tab{background:none;border:0;color:var(--mute);font:700 11.5px var(--fb);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:12px;cursor:pointer;position:relative;min-width:0}
+.tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-current="page"]{color:var(--ball);background:var(--panel)}
+.tab.play .ic{background:var(--ball);color:var(--ink);border-radius:50%;width:40px;height:40px;display:grid;place-items:center;margin-top:-16px;border:3px solid var(--ink)}
+.tab.play[aria-current="page"]{background:none}
+.tab .dot{position:absolute;top:4px;inset-inline-end:24%;width:9px;height:9px;border-radius:50%;background:var(--bad);border:2px solid var(--ink)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
+.eyebrow{font:800 12px var(--fd);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.big{font:900 clamp(32px,8vw,56px)/.98 var(--fd);text-transform:uppercase;text-wrap:balance;margin:6px 0 10px}
+.big.sm{font-size:clamp(28px,6.5vw,40px)}
+:root[lang="ar"] .big{line-height:1.3;text-transform:none}
+.sub{color:var(--mute);max-width:58ch;margin:0 0 14px}
+.mut{color:var(--mute);font-size:13px}
+.btn{font:700 16px var(--fb);background:var(--ball);color:#0a0f1e;border:0;border-radius:12px;padding:11px 18px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.4;cursor:default;filter:none}
+.btn.blue{background:var(--blue)}
+.btn.ghost{background:transparent;color:var(--chalk);border:1px solid var(--line)}
+.btn.sm{padding:7px 12px;font-size:14px;border-radius:10px}
+.btn.lg{padding:15px 26px;font-size:19px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.grid2{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start}
+.col{display:grid;gap:14px;min-width:0}
+@media(max-width:780px){.grid2{grid-template-columns:1fr}}
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#18244d,#121a31 62%)}
+.hero::after{content:"";position:absolute;inset-inline-end:-70px;bottom:-90px;width:270px;height:270px;border-radius:50%;border:3px solid rgba(255,122,47,.35);box-shadow:0 0 0 24px rgba(255,122,47,.08);pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.journey{display:grid;gap:10px;margin-top:12px}
+.jr{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;padding:10px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+.jr .n{font:900 22px/1 var(--fd);color:var(--ball);min-width:20px;text-align:center}
+.jr b{font:800 18px/1.1 var(--fd);text-transform:uppercase;display:block}
+:root[lang="ar"] .jr b{text-transform:none}
+.jr span.d{color:var(--mute);font-size:13px}
+.jr.hot{background:var(--ball);border-color:var(--ball);color:var(--ink)}
+.jr.hot .n{color:var(--ink)}.jr.hot span.d{color:#3b1d0b}
+.bar{height:10px;border-radius:99px;background:var(--panel2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--good);border-radius:99px}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.tbtn{--c:var(--line);text-align:start;border:2px solid var(--c);background:var(--panel2);border-radius:14px;padding:12px;cursor:pointer;display:grid;gap:3px;min-width:0}
+.tbtn b{font:900 22px/1 var(--fd);text-transform:uppercase}
+:root[lang="ar"] .tbtn b{text-transform:none}
+.tbtn span{font-size:12px;color:var(--mute)}
+.tbtn .badge{color:var(--ink);font-size:11px}
+.hero .big{font-size:clamp(30px,5.2vw,46px)}
+.tbtn[aria-pressed="true"]{background:var(--panel);box-shadow:0 0 0 2px var(--c)}
+.tbtn.off{border-style:dashed;border-color:var(--line);cursor:default;opacity:.6}
+.badge{font:800 11px var(--fb);padding:2px 8px;border-radius:99px;background:var(--good);color:var(--ink);display:inline-block}
+.badge.warn{background:var(--warn)}
+.fx{display:flex;align-items:center;justify-content:space-between;gap:10px;direction:ltr;margin:6px 0}
+.fx b{font:900 clamp(24px,6vw,34px)/1 var(--fd);text-transform:uppercase}
+.fx i{font-style:normal;color:var(--mute);font:800 14px var(--fd)}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line);font-size:14px;gap:10px}
+.mini{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.gl{width:34px;height:34px;display:grid;place-items:center;margin-inline:auto;color:var(--ball)}
+.gl svg{width:30px;height:30px;fill:currentColor;font-family:var(--fd)}
+.ct{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel));border-radius:14px;padding:14px;display:grid;gap:6px;align-content:start;text-align:start}
+.ct .top{display:flex;gap:10px;align-items:center}
+.ct .gl{width:46px;height:46px;border-radius:12px;background:var(--ink);border:1px solid var(--ball);margin:0;flex:none}
+.ct b{font:800 20px/1.1 var(--fd);text-transform:uppercase}
+:root[lang="ar"] .ct b{text-transform:none}
+.meter{position:relative;height:34px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);overflow:hidden;direction:ltr;margin-block:12px}
+.meter .zy{position:absolute;top:0;bottom:0;background:rgba(255,200,87,.35)}
+.meter .zg{position:absolute;top:0;bottom:0;background:rgba(61,220,151,.6)}
+.meter .dot{position:absolute;top:5px;left:0;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:var(--ball);border:2px solid var(--chalk)}
+.rev{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
+@media(max-width:520px){.rev{grid-template-columns:1fr}}
+.fc{perspective:900px;cursor:pointer;height:150px;border:0;background:none;padding:0;display:block;width:100%}
+.fc .in{position:relative;width:100%;height:100%;transition:transform .55s;transform-style:preserve-3d}
+.fc.f .in{transform:rotateY(180deg)}
+.fc .fa,.fc .fb{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px}
+.fc .fa{background:repeating-linear-gradient(135deg,#17224a 0 12px,#1b2a5c 12px 24px);border:2px solid var(--line);display:grid;place-items:center;font:900 22px var(--fd);color:var(--ball);text-align:center;padding:8px}
+.fc .fb{transform:rotateY(180deg)}
+.fc .fb .ct{height:100%}
+.court{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#0b1230}
+.court canvas{display:block;width:100%;height:auto;aspect-ratio:960/504}
+.sbd{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;direction:ltr;gap:8px}
+.tm{background:rgba(10,15,30,.84);border-left:5px solid var(--c);padding:6px 12px;border-radius:10px;min-width:0}
+.tm.r{border-left:0;border-right:5px solid var(--c);text-align:right}
+.tm b{font:900 38px/1 var(--fd);display:block}
+.tm small{font-size:12px;color:var(--mute);display:block}
+.rd{background:rgba(10,15,30,.84);border-radius:10px;padding:6px 12px;text-align:center;font:800 14px var(--fd);letter-spacing:.06em;display:grid;gap:2px}
+.rd em{font-style:normal;color:var(--ball);letter-spacing:.2em}
+.com{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(10,15,30,.84);border-radius:10px;padding:8px 12px;font-size:14px;min-height:36px}
+@media(max-width:520px){.tm b{font-size:28px}.tm{padding:4px 8px}.com{font-size:12px;padding:5px 9px;min-height:0}}
+.ctl{margin-top:12px}
+.kbd{font:700 12px var(--fb);color:var(--mute);border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+.cardbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.cardbar .st{font-size:13px;color:var(--mute);min-width:0}
+.res .score{font:900 72px/1 var(--fd);display:flex;gap:16px;align-items:center;direction:ltr;margin:6px 0 10px}
+.res .score i{color:var(--mute);font-style:normal}
+.note{background:var(--panel2);border-radius:12px;padding:12px;margin-top:10px}
+.note p{margin:4px 0 0;color:var(--mute)}
+.opt{display:grid;grid-template-columns:1fr auto;gap:4px 10px;text-align:start;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;width:100%}
+.opt:hover{border-color:var(--ball)}
+.opt b{font:800 17px var(--fd);text-transform:uppercase}
+:root[lang="ar"] .opt b{text-transform:none}
+.opt span{color:var(--mute);font-size:13px;grid-column:1}
+.opt .pc{grid-column:2;grid-row:1/3;font:900 22px var(--fd);align-self:center}
+.opt .bar{grid-column:1/-1;margin-top:4px}
+.opt.win{border-color:var(--good)}
+.opt.sel{border-color:var(--blue)}
+.ovc{display:grid;gap:14px;max-width:520px;width:100%}
+.ov{position:fixed;inset:0;background:rgba(5,8,18,.9);display:grid;place-items:center;padding:16px;z-index:20;overflow:auto}
+.seal{border:3px dashed var(--ball);border-radius:16px;padding:26px;text-align:center;background:var(--panel)}
+.seal b{font:900 30px var(--fd);text-transform:uppercase;display:block}
+:root[lang="ar"] .seal b{text-transform:none}
+.ch{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line)}
+.ch:last-child{border-bottom:0}
+.ch .bar{margin-top:6px;width:100%}
+.tk{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;border:2px dashed var(--ball);border-radius:14px;padding:12px;background:var(--panel)}
+.code{font:700 15px ui-monospace,Menlo,Consolas,monospace;background:var(--ink);border-radius:6px;padding:3px 8px;display:inline-block;direction:ltr}
+.qr{width:84px;height:84px;background:var(--chalk);color:var(--ink);padding:6px;border-radius:8px}
+.qr svg{width:100%;height:100%;display:block;fill:currentColor}
+.rwc{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px dashed var(--line)}
+.rwc:last-child{border-bottom:0}
+.rwc b{font:800 18px/1.15 var(--fd);text-transform:uppercase;display:block}
+:root[lang="ar"] .rwc b{text-transform:none}
+.fi{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--chalk)}
+.fld{display:grid;gap:4px;margin-top:10px}
+.fld label{font-size:13px;color:var(--mute)}
+.chk{display:flex;gap:10px;align-items:flex-start;margin-top:10px;font-size:14px}
+.chk input{width:20px;height:20px;margin:2px 0 0;flex:none}
+.fun{display:grid;gap:8px;margin-top:10px}
+.fr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:14px;align-items:center}
+.fr .bar{grid-column:1/-1}
+.fr b{font:900 20px var(--fd)}
+.fr.real span{color:var(--ball);font-weight:700}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.kpis div{background:var(--panel2);border-radius:10px;padding:10px;font-size:12px;color:var(--mute)}
+.kpis b{display:block;font:900 24px/1.1 var(--fd);color:var(--chalk)}
+.cfg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.cfg{grid-template-columns:1fr}}
+.max{font:900 34px/1 var(--fd);color:var(--ball);margin-top:12px}
+.safe{margin:0;padding:0;list-style:none;display:grid;gap:8px;margin-top:10px}
+.safe li{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:14px}
+.safe li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--good);margin-top:7px}
+.pill{font:700 12px var(--fb);color:var(--ink);background:var(--warn);border-radius:99px;padding:2px 10px;display:inline-block}
+.foot{color:var(--mute);font-size:12px;margin-top:14px;max-width:84ch}
+#toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--chalk);color:var(--ink);font-weight:700;padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:30;max-width:88vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app" id="app">
+  <header class="hud" id="hud"></header>
+  <main class="screen" id="screen"></main>
+  <nav class="tabs" id="tabs"></nav>
+</div>
+<div id="toast" role="status"></div>
+<div id="ovh"></div>
+
+<script>
+(()=>{
+'use strict';
+const $=s=>document.querySelector(s);
+const rnd=n=>Math.floor(Math.random()*n);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ================= language ================= */
+const DICT={
+en:{
+tab_home:'Home',tab_play:'Play',tab_zone:'Fan Zone',tab_arena:'Arena',tab_partner:'Partner',
+lv0:'Rookie',lv1:'Starter',lv2:'All-Star',lv3:'MVP',fp:'FP',
+heroEye:'HOOPS MENA · Fan Zone',heroT:'The game starts online. The league happens in the arena.',
+heroSub:'Play, predict and vote for your team. Then show up at a real HOOPS MENA game. Your Fan Points turn into rewards you can only use in person.',
+pickT:'Pick your team',pickSub:'Six teams, each led by a president. Two are confirmed so far.',pres:'President',confirmed:'Confirmed',soon:'President reveal pending',teamN:'Team {0}',
+nextGame:'Next real game',fixture:'Example fixture. Date and venue to be announced.',gameDay:'Game Day {0}',
+reserveBtn:'Get my Arena Pass',passHave:'Arena Pass ready',passIn:'Checked in',toArena:'Open Arena',
+flowT:'The fan journey',
+f1t:'Play',f1d:'A quick match with the real Power Cards. Short and easy to share.',
+f2t:'Predict and vote',f2d:'Pick winners and the Fan MVP for the real games.',
+f3t:'Get your Arena Pass',f3d:'Reserve your place at the next real game.',
+f4t:'Show up',f4d:'Check in at the gate. Most Fan Points are earned here.',
+f5t:'Redeem',f5d:'Unlock partner rewards, verified at the partner counter.',
+lvlT:'Fan level',toNext:'{0} FP to the next level',topLvl:'Top level reached',
+playT:'Quick Match',playSub:'A short version of the real game. Each team gets one random Power Card before the match.',
+needTeam:'Pick your team on Home first.',goHome:'Go to Home',tipOff:'Tip off',
+dailyL:'{0} of {1} matches counted today',dailyFull:'Daily limit reached. You can still play for fun, without Fan Points.',
+cardDraw:'Power Card draw',yourCard:'Your card',rivalCard:'Rival’s card',tapReveal:'Tap to reveal',startMatch:'Start match',
+qN:'Q{0} / 4',activate:'Play card',cardOn:'Captain: {0} is on.',
+aDouble:'Double Score is armed. Your next basket counts double.',aHot:'Hot Shot is armed. Your next three-pointer is worth bonus points.',aFast:'Fast Break! +6 points.',aLock:'Lockdown is set. The rival’s next quarter is cut.',aSixth:'Sixth Man. One extra shot this quarter.',
+c_double:'Double Score',c_hot:'Hot Shot',c_fast:'Fast Break',c_lock:'Lockdown',c_sixth:'Sixth Man',
+cd_double:'Next basket counts double',cd_hot:'Three-pointer worth bonus',cd_fast:'Instant transition advantage',cd_lock:'Defensive stop challenge',cd_sixth:'Extra sub without stoppage',
+rivalPlay:'Rival played {0} in Q{1}.',
+mysT:'Mystery Card',mysSub:'The referee reveals the sealed card for this game.',mysBtn:'Reveal Mystery Card',
+my1:'Bonus scoring opportunity: +4 points.',my2:'Shooting challenge: your next three-pointer pays +4.',my3:'Possession bonus: one extra shot next quarter.',
+clT:'Clutch Minute',clSub:'Fans vote to activate a special feature for the final minute.',
+cl1t:'Triple Zone',cl1d:'Wider scoring zone for your last shots.',cl2t:'Bonus Shot',cl2d:'One extra shot.',cl3t:'Lockdown Minute',cl3d:'Rival scoring is cut in Q4.',
+clWin:'Fans chose {0}.',partnerSlot:'Partner slot (demo)',
+sponsorShot:'Green = 3 points, yellow = 2. The green zone is the Sponsor Shot, a partner slot.',
+shootBtn:'Shoot',leave:'Leave match',rivalsBall:'Captain: Rivals have the ball…',roundStart:'Captain: Quarter {0}. Your ball.',
+recap:'Quarter {0}: you {1} · teammates {2} · rivals {3}',
+win:'Victory',loss:'Rivals took this one',final:'Final score',
+earnedFP:'You earned {0} Fan Points',notCounted:'Daily limit reached. No Fan Points this time.',
+playAgain:'Play again',toZone:'Go to Fan Zone',shareT:'Bring a friend',shareD:'Friends who play with your code earn you Fan Points.',copy:'Copy',copied:'Invite code copied.',
+zoneT:'Fan Zone',zoneSub:'Have your say on the real games. Every action earns Fan Points, with daily limits.',
+predT:'Predict the next game',predSub:'Pick the winner. +5 FP now, +20 FP more if you are right.',predLocked:'You picked {0}. +5 FP.',simRes:'Simulate the real result (demo)',resIs:'{0} won.',right:'Your pick was right. +20 FP.',wrong:'Not this time.',
+mvpT:'Fan MVP vote',mvpSub:'One vote per game. +10 FP.',mvpDone:'Vote cast. +10 FP.',
+chT:'Game-day challenges',ch1:'Play 3 matches',ch2:'Predict and vote',ch3:'Invite a friend who plays',claimCh:'Claim +{0} FP',claimedL:'Claimed',
+arenaT:'Arena',arenaSub:'The real HOOPS MENA game is the point. Reserve a pass, check in at the gate, then unlock rewards you use in person.',
+passT:'Arena Pass',verT:'Verify your phone',verD:'One verified phone number per fan keeps rewards fair. Demo only, nothing is stored.',phone:'Phone number',verBtn:'Verify',verBad:'Enter a valid phone number.',verOk:'Phone verified.',
+consent:'Send me partner offers (optional)',reserve:'Reserve my pass',passCode:'Pass code',stR:'Reserved',stI:'Checked in',scanGate:'Scan at the gate (demo)',inOk:'Checked in at the arena. +150 FP.',
+friendBtn:'A friend checked in with me (demo)',friendOk:'Friend checked in. +50 FP.',friendMax:'Friend check-in limit reached for this game day.',
+rwT:'Rewards',rwSub:'Fan Points buy rewards. Anything that costs the partner money needs a verified check-in at the arena.',
+rwWall:'Team wallpaper pack',rwCut:'Exclusive Mic’d Up clip',rwSlot:'Skills Challenge slot at the arena',rwVoucher:'Partner voucher',rwPrio:'Priority Fan Zone entry',rwBadge:'Partner badge',
+needIn:'Needs arena check-in',needFP:'Needs {0} FP',costFP:'{0} FP',left:'{0} of {1} left',claim:'Claim',full:'Full',
+claimOk:'Claimed. Your code is below.',unlocked:'Unlocked',poolFull:'The voucher pool for this game day is full. You got a Partner badge instead.',
+codesT:'Your rewards',noCodes:'Claim a reward to see it here.',exp:'Expires in {0}h',oneUse:'One use',
+sc_vch:'Scan at partner counter (demo)',sc_slot:'Scan at activation (demo)',sc_prio:'Scan at Fan Zone entry (demo)',
+usedL:'Used',dupBlocked:'Code already used. Duplicate blocked.',vOk:'Verified and counted.',demoCode:'Demo code, not scannable.',
+parT:'Partner view',parSub:'What the partner sees behind the scenes.',
+sample:'Sample data',live:'This demo only',sampleNote:'Sample data shows the report format. It is not a forecast or a promise.',
+funT:'Fan journey, counted at each step',fn1:'Played online',fn2:'Predicted or voted',fn3:'Arena Pass reserved',fn4:'Checked in at the arena',fn5:'Voucher claimed',fn6:'Voucher redeemed at the counter',
+verified:'Verified in person',
+ctrlT:'Budget controls (set by the partner)',pool:'Vouchers per game day',val:'Voucher value (JOD)',expH:'Expiry (hours)',needInL:'Vouchers need arena check-in',
+maxCost:'Maximum cost per game day',maxNote:'{0} vouchers × JOD {1}. The system cannot issue more.',issuedL:'Issued today: {0} of {1}',
+repT:'Impact report',rp1:'Fan participation',rp2:'Voting activity',rp3:'Activation participation',rp4:'Verified attendance',rp5:'Verified redemptions',rp6:'Opted in to partner offers',
+safeT:'How the partner is protected',
+sf1:'Fixed-value vouchers, never a percentage.',sf2:'A closed pool per game day. When it is empty, fans get a no-cost reward.',sf3:'One voucher per verified phone number per game day.',
+sf4:'Vouchers need a verified check-in at the real game, so online play alone costs the partner nothing.',sf5:'Each code expires and works once, checked at the counter.',sf6:'Fan Points have daily limits, so they cannot be farmed.',sf7:'Contact details go to the partner only for fans who opted in.',
+demoT:'Demo tools',dFP:'+100 FP',dDay:'Start next game day',dFriend:'Friend joined (+30 FP)',dEmpty:'Empty the voucher pool',dReset:'Reset demo',
+friendJoin:'A friend joined with your code. +30 FP.',friendCap:'Invite limit reached for this game day.',dayNew:'New game day. Daily limits are reset.',
+lvlUp:'New level: {0}.',
+foot:'Prototype with simulated players and sample data. Power Cards, Fan Power and Fan Zone follow the HOOPS MENA concept. Real play, voting and rewards need a backend and phone verification. Before launch: guardian consent for under-18s, and a legal check of prediction and voucher rules in Jordan.'},
+ar:{
+tab_home:'الرئيسية',tab_play:'العب',tab_zone:'الجمهور',tab_arena:'الملعب',tab_partner:'الشريك',
+lv0:'مبتدئ',lv1:'أساسي',lv2:'نجم',lv3:'الأفضل',fp:'نقطة',
+heroEye:'هوبس مينا · منطقة الجمهور',heroT:'اللعبة تبدأ أونلاين. والدوري يُلعب في الملعب.',
+heroSub:'العب وتوقّع وصوّت لفريقك. ثم احضر مباراة حقيقية من هوبس مينا. نقاطك تتحول إلى مكافآت لا تُستخدم إلا على أرض الواقع.',
+pickT:'اختر فريقك',pickSub:'ستة فرق، ولكل فريق رئيس. اثنان مؤكدان حتى الآن.',pres:'الرئيس',confirmed:'مؤكد',soon:'الكشف عن الرئيس قريباً',teamN:'الفريق {0}',
+nextGame:'المباراة الحقيقية القادمة',fixture:'مباراة تجريبية. يُعلن الموعد والمكان لاحقاً.',gameDay:'يوم المباراة {0}',
+reserveBtn:'احصل على تذكرة الملعب',passHave:'تذكرة الملعب جاهزة',passIn:'تم تسجيل الدخول',toArena:'افتح الملعب',
+flowT:'رحلة المشجع',
+f1t:'العب',f1d:'مباراة سريعة بكاردات القوة الحقيقية. قصيرة وسهلة المشاركة.',
+f2t:'توقّع وصوّت',f2d:'اختر الفائز وأفضل لاعب في المباريات الحقيقية.',
+f3t:'احجز تذكرتك',f3d:'احجز مكانك في المباراة الحقيقية القادمة.',
+f4t:'احضر',f4d:'سجّل دخولك عند البوابة. هنا تُكسب معظم النقاط.',
+f5t:'استلم',f5d:'افتح مكافآت الشركاء، ويتم التحقق منها عند منفذ الشريك.',
+lvlT:'مستوى المشجع',toNext:'باقي {0} نقطة للمستوى التالي',topLvl:'وصلت إلى أعلى مستوى',
+playT:'مباراة سريعة',playSub:'نسخة قصيرة من المباراة الحقيقية. يحصل كل فريق على كارد قوة عشوائي واحد قبل المباراة.',
+needTeam:'اختر فريقك من الرئيسية أولاً.',goHome:'إلى الرئيسية',tipOff:'ابدأ',
+dailyL:'{0} من {1} مباريات محتسبة اليوم',dailyFull:'وصلت إلى الحد اليومي. يمكنك اللعب للمتعة دون نقاط.',
+cardDraw:'سحب كارد القوة',yourCard:'كاردك',rivalCard:'كارد الخصم',tapReveal:'اضغط للكشف',startMatch:'ابدأ المباراة',
+qN:'الربع {0} / 4',activate:'العب الكارد',cardOn:'كابتن: {0} فعّال.',
+aDouble:'النقاط المضاعفة جاهزة. سلتك القادمة تُحسب مرتين.',aHot:'التسديدة الساخنة جاهزة. ثلاثيتك القادمة تحمل نقاطاً إضافية.',aFast:'هجمة مرتدة! +6 نقاط.',aLock:'تم تفعيل الإغلاق. سيتأثر تسجيل الخصم في الربع القادم.',aSixth:'اللاعب السادس. تسديدة إضافية في هذا الربع.',
+c_double:'نقاط مضاعفة',c_hot:'تسديدة ساخنة',c_fast:'هجمة مرتدة',c_lock:'إغلاق الدفاع',c_sixth:'اللاعب السادس',
+cd_double:'السلة القادمة تُحسب مرتين',cd_hot:'الثلاثية تحمل نقاطاً إضافية',cd_fast:'أفضلية فورية في الانتقال',cd_lock:'تحدّي إيقاف دفاعي',cd_sixth:'تبديل إضافي دون توقف',
+rivalPlay:'الخصم لعب «{0}» في الربع {1}.',
+mysT:'الكارد الغامض',mysSub:'الحكم يكشف الكارد المغلق لهذه المباراة.',mysBtn:'اكشف الكارد الغامض',
+my1:'فرصة تسجيل إضافية: +4 نقاط.',my2:'تحدّي تسديد: ثلاثيتك القادمة تعطي +4.',my3:'ميزة الاستحواذ: تسديدة إضافية في الربع القادم.',
+clT:'الدقيقة الحاسمة',clSub:'الجمهور يصوّت لتفعيل ميزة خاصة في الدقيقة الأخيرة.',
+cl1t:'منطقة ثلاثية',cl1d:'منطقة تسجيل أوسع لتسديداتك الأخيرة.',cl2t:'تسديدة إضافية',cl2d:'تسديدة واحدة إضافية.',cl3t:'دقيقة الإغلاق',cl3d:'تسجيل الخصم يقل في الربع الرابع.',
+clWin:'الجمهور اختار: {0}.',partnerSlot:'مساحة الشريك (تجريبي)',
+sponsorShot:'الأخضر = 3 نقاط، الأصفر = نقطتان. المنطقة الخضراء هي تسديدة الراعي، ومساحة للشريك.',
+shootBtn:'سدّد',leave:'غادر المباراة',rivalsBall:'كابتن: الكرة مع الخصوم…',roundStart:'كابتن: الربع {0}. الكرة معك.',
+recap:'الربع {0}: أنت {1} · زملاؤك {2} · الخصوم {3}',
+win:'فوز',loss:'الخصوم فازوا هذه المرة',final:'النتيجة النهائية',
+earnedFP:'ربحت {0} نقطة',notCounted:'وصلت إلى الحد اليومي. لا نقاط هذه المرة.',
+playAgain:'العب مجدداً',toZone:'إلى منطقة الجمهور',shareT:'أحضر صديقاً',shareD:'الأصدقاء الذين يلعبون بكودك يمنحونك نقاطاً.',copy:'نسخ',copied:'تم نسخ كود الدعوة.',
+zoneT:'منطقة الجمهور',zoneSub:'شارك برأيك في المباريات الحقيقية. كل مشاركة تعطيك نقاطاً، بحدود يومية.',
+predT:'توقّع المباراة القادمة',predSub:'اختر الفائز. +5 نقاط الآن، و+20 إضافية إذا أصبت.',predLocked:'اخترت {0}. +5 نقاط.',simRes:'محاكاة نتيجة المباراة الحقيقية (تجريبي)',resIs:'فاز {0}.',right:'توقعك صحيح. +20 نقطة.',wrong:'ليس هذه المرة.',
+mvpT:'تصويت أفضل لاعب',mvpSub:'صوت واحد لكل مباراة. +10 نقاط.',mvpDone:'تم التصويت. +10 نقاط.',
+chT:'تحديات يوم المباراة',ch1:'العب 3 مباريات',ch2:'توقّع وصوّت',ch3:'ادعُ صديقاً يلعب',claimCh:'استلم +{0} نقطة',claimedL:'تم الاستلام',
+arenaT:'الملعب',arenaSub:'المباراة الحقيقية من هوبس مينا هي الهدف. احجز تذكرة، سجّل دخولك عند البوابة، ثم افتح مكافآت تستخدمها بنفسك.',
+passT:'تذكرة الملعب',verT:'تحقق من هاتفك',verD:'رقم هاتف واحد موثّق لكل مشجع يحافظ على عدالة المكافآت. للعرض فقط ولا يُخزَّن شيء.',phone:'رقم الهاتف',verBtn:'تحقق',verBad:'أدخل رقم هاتف صحيحاً.',verOk:'تم التحقق من الهاتف.',
+consent:'أرسلوا لي عروض الشركاء (اختياري)',reserve:'احجز تذكرتي',passCode:'كود التذكرة',stR:'محجوزة',stI:'تم الدخول',scanGate:'امسح عند البوابة (تجريبي)',inOk:'تم تسجيل دخولك إلى الملعب. +150 نقطة.',
+friendBtn:'دخل صديق معي (تجريبي)',friendOk:'دخل صديق. +50 نقطة.',friendMax:'وصلت إلى حد دخول الأصدقاء لهذا اليوم.',
+rwT:'المكافآت',rwSub:'تشتري بالنقاط مكافآت. أي مكافأة تكلّف الشريك مالاً تتطلب تسجيل دخول موثّقاً في الملعب.',
+rwWall:'حزمة خلفيات الفريق',rwCut:'مقطع حصري «Mic’d Up»',rwSlot:'مكان في تحدّي المهارات في الملعب',rwVoucher:'قسيمة الشريك',rwPrio:'دخول أولوية إلى منطقة الجمهور',rwBadge:'شارة الشريك',
+needIn:'يتطلب تسجيل دخول في الملعب',needFP:'يتطلب {0} نقطة',costFP:'{0} نقطة',left:'متبقي {0} من {1}',claim:'استلم',full:'مكتمل',
+claimOk:'تم الاستلام. كودك بالأسفل.',unlocked:'مفتوح',poolFull:'اكتمل مخزون القسائم لهذا اليوم. حصلت على شارة الشريك بدلاً منها.',
+codesT:'مكافآتك',noCodes:'استلم مكافأة لتظهر هنا.',exp:'ينتهي بعد {0} ساعة',oneUse:'استخدام واحد',
+sc_vch:'امسح عند منفذ الشريك (تجريبي)',sc_slot:'امسح عند الفعالية (تجريبي)',sc_prio:'امسح عند مدخل منطقة الجمهور (تجريبي)',
+usedL:'مستخدم',dupBlocked:'الكود مستخدم من قبل. تم منع التكرار.',vOk:'تم التحقق والاحتساب.',demoCode:'كود تجريبي غير قابل للمسح.',
+parT:'عرض الشريك',parSub:'ما يراه الشريك خلف الكواليس.',
+sample:'بيانات تجريبية',live:'هذا العرض فقط',sampleNote:'البيانات التجريبية تعرض شكل التقرير. وهي ليست توقعاً ولا وعداً.',
+funT:'رحلة المشجع، تُحتسب عند كل خطوة',fn1:'لعبوا أونلاين',fn2:'توقّعوا أو صوّتوا',fn3:'حجزوا تذكرة الملعب',fn4:'سجّلوا دخولهم في الملعب',fn5:'استلموا قسيمة',fn6:'استخدموا القسيمة عند المنفذ',
+verified:'تحقق حضوري',
+ctrlT:'ضوابط الميزانية (يحددها الشريك)',pool:'عدد القسائم في يوم المباراة',val:'قيمة القسيمة (دينار)',expH:'الصلاحية (ساعات)',needInL:'القسائم تتطلب تسجيل دخول في الملعب',
+maxCost:'أقصى تكلفة في يوم المباراة',maxNote:'{0} قسيمة × {1} دينار. لا يمكن للنظام إصدار أكثر.',issuedL:'الصادر اليوم: {0} من {1}',
+repT:'تقرير الأثر',rp1:'مشاركة الجمهور',rp2:'نشاط التصويت',rp3:'المشاركة في الفعاليات',rp4:'الحضور الموثّق',rp5:'الاستخدام الموثّق',rp6:'وافقوا على عروض الشركاء',
+safeT:'كيف نحمي الشريك',
+sf1:'قسائم بقيمة ثابتة، وليست نسبة.',sf2:'مخزون مغلق لكل يوم مباراة. وعند نفاده يحصل المشجع على مكافأة لا تكلّف شيئاً.',sf3:'قسيمة واحدة لكل رقم هاتف موثّق في يوم المباراة.',
+sf4:'القسائم تتطلب تسجيل دخول موثّقاً في المباراة الحقيقية، فاللعب الأونلاين وحده لا يكلّف الشريك شيئاً.',sf5:'كل كود له صلاحية ويُستخدم مرة واحدة، ويُفحص عند المنفذ.',sf6:'النقاط لها حدود يومية، فلا يمكن تجميعها بلا نهاية.',sf7:'بيانات التواصل تصل للشريك فقط لمن وافق على ذلك.',
+demoT:'أدوات العرض',dFP:'+100 نقطة',dDay:'ابدأ يوم مباراة جديد',dFriend:'انضم صديق (+30 نقطة)',dEmpty:'إفراغ مخزون القسائم',dReset:'إعادة العرض',
+friendJoin:'انضم صديق بكودك. +30 نقطة.',friendCap:'وصلت إلى حد الدعوات لهذا اليوم.',dayNew:'يوم مباراة جديد. تمت إعادة الحدود اليومية.',
+lvlUp:'مستوى جديد: {0}.',
+foot:'نموذج أولي بلاعبين وبيانات تجريبية. كاردات القوة وقوة الجمهور ومنطقة الجمهور مبنية على فكرة هوبس مينا. اللعب والتصويت والمكافآت الحقيقية تحتاج خادماً وتحققاً من الهاتف. قبل الإطلاق: موافقة ولي الأمر لمن هم دون 18 سنة، ومراجعة قانونية لقواعد التوقعات والقسائم في الأردن.'}
+};
+const LINES={
+en:{swish:['Captain: Clean swish. Three points.','Captain: Nothing but net.'],rim:['Captain: Rattles in. Two points.','Captain: Off the rim and down. Two.'],miss:['Captain: Off the rim. Next one.','Captain: Short. Reset and go again.']},
+ar:{swish:['كابتن: سلّة نظيفة. ثلاث نقاط.','كابتن: لم تلمس الحلقة.'],rim:['كابتن: دخلت بعد اهتزاز. نقطتان.','كابتن: لامست الحلقة ودخلت. نقطتان.'],miss:['كابتن: ارتدت من الحلقة. المحاولة التالية.','كابتن: قصيرة. ركّز وأعد المحاولة.']}
+};
+let lang='en';
+try{const s=localStorage.getItem('hm_lang');if(s==='ar'||s==='en')lang=s;else if((navigator.language||'').toLowerCase().indexOf('ar')===0)lang='ar'}catch(e){}
+const t=(k,...a)=>{let s=(DICT[lang][k]!==undefined?DICT[lang][k]:(DICT.en[k]!==undefined?DICT.en[k]:k));a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});return s};
+const applyLang=()=>{document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr'};
+
+/* ================= data ================= */
+const TEAMS=[
+{id:'feed',ok:1,c:'#ff7a2f',n:{en:'Team Feed',ar:'فريق فيد'},p:{en:'Feed Mureed',ar:'فيد مريد'}},
+{id:'sanad',ok:1,c:'#4f8cff',n:{en:'Team Sanad',ar:'فريق سند'},p:{en:'Sanad Al-Raggad',ar:'سند الرقاد'}},
+{id:'t3',ok:0,no:'03'},{id:'t4',ok:0,no:'04'},{id:'t5',ok:0,no:'05'},{id:'t6',ok:0,no:'06'}];
+const TM=id=>TEAMS.find(x=>x.id===id);
+const tname=id=>TM(id).n[lang];
+const other=id=>id==='feed'?'sanad':'feed';
+const CARDS=['double','hot','fast','lock','sixth'];
+const GL={
+fast:'<path d="M13 2 4 14h6l-1 8 9-12h-6z"/>',
+hot:'<path d="M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-1.5-.5-2.5-1-3.5 3 1.5 5 4 5 7.5a7 7 0 0 1-14 0c0-5 4-7 7-13z"/>',
+lock:'<path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z"/>',
+sixth:'<text x="12" y="18" text-anchor="middle" font-size="17" font-weight="900">6</text>',
+double:'<text x="12" y="17" text-anchor="middle" font-size="14" font-weight="900">×2</text>'};
+const glyph=id=>`<span class="gl"><svg viewBox="0 0 24 24" aria-hidden="true">${GL[id]}</svg></span>`;
+const LV=[0,150,400,800];
+const FIX={a:'feed',b:'sanad'};
+const PLAYERS=['Player 12','Player 07','Player 23'];
+const MVPBASE=[640,260,100];
+const DAILY_PLAYS=3;
+
+/* sample base numbers, shown only in the Partner view when "Sample data" is on */
+const SB={played:420,engaged:310,pass:150,inn:96,claimed:61,redeemed:38,slots:9,prio:12,optin:52,votes:540};
+const CAPS={slot:24,prio:30};
+
+const init=()=>({tab:'home',team:null,fp:0,life:0,day:1,playsToday:0,playsAll:0,
+ pred:null,predRes:null,mvp:null,refsToday:0,refsAll:0,chClaimed:{},
+ verified:false,consent:false,pass:null,inn:false,friendsIn:0,claimed:{},items:[],
+ inv:'HM-FAN-'+Math.random().toString(36).slice(2,6).toUpperCase(),
+ sample:true,cfg:{pool:100,val:1,expH:48,needIn:true},
+ x:{players:0,engaged:0,pass:0,inn:0,claimed:0,redeemed:0,slots:0,prio:0,votes:0}});
+let G=init();
+let M=null;
+const meter={pos:0,dir:1,on:false};
+const ZONE=8;
+
+const base=k=>G.sample?SB[k]:0;
+const vUsed=()=>base('claimed')+G.x.claimed;
+const vLeft=()=>Math.max(0,G.cfg.pool-vUsed());
+const capUsed=k=>(G.sample?SB[k==='slot'?'slots':'prio']:0)+G.x[k==='slot'?'slots':'prio'];
+const capLeft=k=>Math.max(0,CAPS[k]-capUsed(k));
+const levelOf=()=>{let r=0;LV.forEach((x,i)=>{if(G.life>=x)r=i});return r};
+function gain(n){const b=levelOf();G.fp+=n;G.life+=n;const a=levelOf();if(a>b)toast(t('lvlUp',t('lv'+a)))}
+let tt;
+function toast(m){const e=$('#toast');if(!e)return;e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2800)}
+const hitPts=g=>{const d=Math.abs(meter.pos-.5)*100;return d<=g?3:d<=g+12?2:0};
+const botScore=r=>Math.round(r/100*(2+Math.random()*4));
+const fmt=n=>(Math.round(n*100)/100).toString();
+
+/* ================= HUD and nav ================= */
+function hud(){
+  const lv=levelOf();
+  $('#hud').innerHTML=`<div class="logo"><i></i>HOOPS <span>MENA</span></div>
+  <span class="chip">${t('lv'+lv)}</span><span class="chip">${G.fp} <small>${t('fp')}</small></span>
+  <button class="chip" data-a="lang" aria-label="Language">${lang==='ar'?'EN':'عربي'}</button>`;
+}
+const NAV=[
+['home','<path d="M3 11 12 3l9 8v10h-6v-6H9v6H3z"/>'],
+['zone','<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>'],
+['play','<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18M5.6 5.6c3 3 3 10.8 0 12.8M18.4 5.6c-3 3-3 10.8 0 12.8"/>'],
+['arena','<path d="M3 8a2 2 0 0 0 0 8v3h18v-3a2 2 0 0 1 0-8V5H3z"/><path d="M14 5v14" stroke-dasharray="2 2"/>'],
+['partner','<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>']];
+const arenaDot=()=>G.pass&&!G.inn;
+function nav(){
+  $('#tabs').innerHTML=NAV.map(([k,p])=>`<button class="tab ${k==='play'?'play':''}" data-a="tab" data-v="${k}" ${G.tab===k?'aria-current="page"':''}>${k==='play'?'<span class="ic">':''}<svg viewBox="0 0 24 24" aria-hidden="true">${p}</svg>${k==='play'?'</span>':''}<span>${t('tab_'+k)}</span>${k==='arena'&&arenaDot()?'<i class="dot"></i>':''}</button>`).join('');
+}
+
+/* ================= helpers for UI ================= */
+const SC={},AF={};
+function qr(code){
+  let h=0;for(const ch of code)h=(Math.imul(h,31)+ch.charCodeAt(0))>>>0;
+  let x=h||1;const r=()=>{x^=x<<13;x>>>=0;x^=x>>>17;x^=x<<5;x>>>=0;return x/4294967296};
+  const n=17;let s='';
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+    let fill;const fz=(i<7&&j<7)?[i,j]:(i<7&&j>9)?[i,j-10]:(i>9&&j<7)?[i-10,j]:null;
+    if(fz){const [a,b]=fz;fill=a===0||a===6||b===0||b===6||(a>=2&&a<=4&&b>=2&&b<=4)}else fill=r()>.5;
+    if(fill)s+=`<rect x="${j}" y="${i}" width="1" height="1"/>`;
+  }
+  return `<svg viewBox="0 0 17 17" shape-rendering="crispEdges" aria-hidden="true">${s}</svg>`;
+}
+const cardTile=id=>`<article class="ct"><div class="top">${glyph(id)}<div><b>${t('c_'+id)}</b></div></div><div class="mut">${t('cd_'+id)}</div></article>`;
+const meterHTML=g=>`<div class="meter"><div class="zy" id="mzy" style="left:${50-g-12}%;width:${(g+12)*2}%"></div><div class="zg" id="mzg" style="left:${50-g}%;width:${g*2}%"></div><i class="dot" id="mdot"></i></div>`;
+
+/* ================= HOME ================= */
+function teamBtn(tm){
+  if(!tm.ok)return `<div class="tbtn off"><b>${t('teamN',tm.no)}</b><span>${t('soon')}</span></div>`;
+  return `<button class="tbtn" style="--c:${tm.c}" aria-pressed="${G.team===tm.id}" data-a="team" data-v="${tm.id}"><b>${tm.n[lang]}</b><span>${t('pres')}: ${tm.p[lang]}</span><span><span class="badge">${t('confirmed')}</span></span></button>`;
+}
+SC.home=()=>{
+  const nxt=LV[levelOf()+1];
+  const lvl=nxt===undefined?`<p class="mut" style="margin:8px 0 0">${t('topLvl')}</p>`:`<div class="bar" style="margin-top:10px"><i style="width:${clamp((G.life-LV[levelOf()])/(nxt-LV[levelOf()])*100,0,100)}%"></i></div><p class="mut" style="margin:6px 0 0">${t('toNext',nxt-G.life)}</p>`;
+  const J=[['f1t','f1d'],['f2t','f2d'],['f3t','f3d'],['f4t','f4d'],['f5t','f5d']];
+  const pass=G.pass?`<span class="badge">${G.inn?t('passIn'):t('passHave')}</span>`:'';
+  return `<div class="grid2"><div class="col">
+  <section class="panel hero"><div class="eyebrow">${t('heroEye')}</div><h1 class="big">${t('heroT')}</h1><p class="sub">${t('heroSub')}</p>
+  <div class="row"><button class="btn lg" data-a="tab" data-v="play">${t('tab_play')}</button><button class="btn ghost lg" data-a="tab" data-v="arena">${t('tab_arena')}</button></div></section>
+  <section class="panel"><div class="eyebrow">${t('flowT')}</div><div class="journey">${J.map((j,i)=>`<div class="jr ${i===3?'hot':''}"><span class="n">${i+1}</span><div><b>${t(j[0])}</b><span class="d">${t(j[1])}</span></div></div>`).join('')}</div></section>
+  </div><div class="col">
+  <section class="panel"><div class="eyebrow">${t('nextGame')} · ${t('gameDay',G.day)}</div>
+    <div class="fx"><b style="color:${TM(FIX.a).c}">${tname(FIX.a)}</b><i>VS</i><b style="color:${TM(FIX.b).c}">${tname(FIX.b)}</b></div>
+    <p class="mut" style="margin:0">${t('fixture')}</p>
+    <div class="row">${G.pass?pass:`<button class="btn blue" data-a="tab" data-v="arena">${t('reserveBtn')}</button>`}${G.pass?`<button class="btn ghost" data-a="tab" data-v="arena">${t('toArena')}</button>`:''}</div></section>
+  <section class="panel"><div class="eyebrow">${t('pickT')}</div><p class="mut" style="margin:6px 0 0">${t('pickSub')}</p><div class="tgrid">${TEAMS.map(teamBtn).join('')}</div></section>
+  <section class="panel"><div class="eyebrow">${t('lvlT')}</div><div class="ovr" style="font:900 30px var(--fd);margin-top:6px">${t('lv'+levelOf())} · ${G.fp} ${t('fp')}</div>${lvl}</section>
+  </div></div><p class="foot">${t('foot')}</p>`;
+};
+
+/* ================= PLAY ================= */
+const newMatch=()=>{
+  const rv=other(G.team);
+  return {stage:'draw',rival:rv,my:CARDS[rnd(5)],rc:CARDS[rnd(5)],f:[false,false],
+   mb:Array.from({length:4},()=>45+rnd(36)),rb:Array.from({length:5},()=>45+rnd(36)),
+   r:0,shots:0,max:3,extra:0,sc:[0,0],up:0,used:false,dbl:false,hot:false,chal:false,lock:false,wide:false,lockQ4:false,
+   rq:rnd(4),clutchDone:false,busy:true,started:false};
+};
+SC.play=()=>{
+  if(!G.team)return `<section class="panel"><h2 class="big sm">${t('tab_play')}</h2><p class="sub">${t('needTeam')}</p><button class="btn" data-a="tab" data-v="home">${t('goHome')}</button></section>`;
+  const mc=TM(G.team).c;
+  if(!M){
+    const rv=other(G.team);
+    return `<h2 class="big sm">${t('playT')}</h2><p class="sub">${t('playSub')}</p>
+    <section class="panel"><div class="fx"><b style="color:${mc}">${tname(G.team)}</b><i>VS</i><b style="color:${TM(rv).c}">${tname(rv)}</b></div>
+    <p class="mut" style="margin:8px 0 0">${G.playsToday<DAILY_PLAYS?t('dailyL',G.playsToday,DAILY_PLAYS):t('dailyFull')}</p>
+    <div class="row"><button class="btn lg" data-a="tip">${t('tipOff')}</button></div></section>`;
+  }
+  if(M.stage==='draw'){
+    const f=(i,id,lab)=>`<div><div class="eyebrow" style="margin-bottom:8px">${lab}</div><button class="fc ${M.f[i]?'f':''}" data-a="flipc" data-v="${i}" aria-label="${t('tapReveal')}"><div class="in"><div class="fa">${t('tapReveal')}</div><div class="fb">${cardTile(id)}</div></div></button></div>`;
+    return `<h2 class="big sm">${t('cardDraw')}</h2><p class="sub">${t('playSub')}</p>
+    <div class="rev">${f(0,M.my,t('yourCard'))}${f(1,M.rc,t('rivalCard'))}</div>
+    <div class="row"><button class="btn lg" id="startBtn" data-a="start" ${M.f[0]&&M.f[1]?'':'disabled'}>${t('startMatch')}</button><button class="btn ghost" data-a="leave">${t('leave')}</button></div>`;
+  }
+  if(M.stage==='play')return `<div class="court"><canvas id="cv" width="1440" height="756"></canvas>
+  <div class="sbd"><div class="tm" style="--c:${mc}"><b id="s0">0</b><small>${tname(G.team)}</small></div><div class="rd"><span id="rd"></span><em id="sh"></em></div><div class="tm r" style="--c:${TM(M.rival).c}"><b id="s1">0</b><small>${tname(M.rival)}</small></div></div>
+  <div class="com" id="com"></div></div>
+  <section class="panel ctl">${meterHTML(ZONE)}<div class="mut">${t('sponsorShot')} <span class="pill">${t('partnerSlot')}</span></div>
+  <div class="row"><button class="btn lg" id="shootBtn" data-a="shoot">${t('shootBtn')}</button><span class="kbd">Space</span>
+  <button class="btn blue" id="cardBtn" data-a="card">${t('activate')}: ${t('c_'+M.my)}</button><button class="btn ghost" data-a="leave" style="margin-inline-start:auto">${t('leave')}</button></div>
+  <div class="cardbar"><span class="st">${t('c_'+M.my)}: ${t('cd_'+M.my)}</span></div></section>`;
+  const w=M.win,rw=M.rw;
+  return `<section class="panel res"><div class="eyebrow">${t('final')}</div><h2 class="big">${t(w?'win':'loss')}</h2>
+  <div class="score"><span style="color:${mc}">${M.sc[0]}</span><i>–</i><span style="color:${TM(M.rival).c}">${M.sc[1]}</span></div>
+  <p>${rw.counted?t('earnedFP',rw.fp):t('notCounted')}</p>
+  <div class="note"><b>${t('shareT')}</b><p>${t('shareD')}</p><div class="row" style="margin-top:8px"><span class="code">${G.inv}</span><button class="btn ghost sm" data-a="copyInv">${t('copy')}</button></div></div>
+  <div class="row"><button class="btn" data-a="again">${t('playAgain')}</button><button class="btn blue" data-a="tab" data-v="zone">${t('toZone')}</button><button class="btn ghost" data-a="tab" data-v="arena">${t('tab_arena')}</button></div></section>`;
+};
+AF.play=()=>{
+  if(!M||M.stage!=='play'){meter.on=false;return}
+  cv=$('#cv');cx=cv?cv.getContext('2d'):null;
+  if(!M.started){M.started=true;startRound()}else{updateUI();meter.on=!M.busy}
+};
+function say(m){const e=$('#com');if(e)e.textContent=m}
+function updateUI(){
+  if(!M||M.stage!=='play')return;
+  const s0=$('#s0'),s1=$('#s1');if(s0)s0.textContent=M.sc[0];if(s1)s1.textContent=M.sc[1];
+  const rd=$('#rd');if(rd)rd.textContent=t('qN',Math.min(M.r+1,4));
+  const sh=$('#sh');if(sh){const left=Math.max(0,M.max-M.shots);sh.textContent='●'.repeat(left)+'○'.repeat(Math.max(0,M.max-left))}
+  const b=$('#shootBtn');if(b)b.disabled=!!M.busy;
+  const cb=$('#cardBtn');if(cb)cb.disabled=!!M.busy||M.used;
+  const z=ZONE+(M.wide?8:0),y=$('#mzy'),g=$('#mzg');
+  if(y){y.style.left=(50-z-12)+'%';y.style.width=((z+12)*2)+'%'}
+  if(g){g.style.left=(50-z)+'%';g.style.width=(z*2)+'%'}
+}
+function startRound(){
+  M.shots=0;M.max=3+M.extra;M.extra=0;M.up=0;M.wide=false;M.busy=false;
+  updateUI();meter.on=true;say(t('roundStart',M.r+1));
+}
+function useCard(){
+  if(!M||M.stage!=='play'||M.busy||M.used)return;
+  M.used=true;const id=M.my;
+  if(id==='double'){M.dbl=true;say(t('aDouble'))}
+  if(id==='hot'){M.hot=true;say(t('aHot'))}
+  if(id==='fast'){M.sc[0]+=6;pushFloat('+6','#3ddc97');say(t('aFast'))}
+  if(id==='lock'){M.lock=true;say(t('aLock'))}
+  if(id==='sixth'){M.max+=1;say(t('aSixth'))}
+  updateUI();
+}
+async function shoot(){
+  if(!M||M.stage!=='play'||M.busy)return;
+  const me=M;me.busy=true;meter.on=false;updateUI();
+  const p0=hitPts(ZONE+(me.wide?8:0));
+  let p=p0;
+  if(p0===3&&me.hot){p+=2;me.hot=false}
+  if(p0===3&&me.chal){p+=4;me.chal=false}
+  if(p>0&&me.dbl){p*=2;me.dbl=false}
+  const res=p0===3?'swish':p0===2?'rim':'miss';
+  await animShot(res);if(M!==me)return;
+  me.sc[0]+=p;me.up+=p;me.shots++;
+  pushFloat(p?'+'+p:'MISS',p?'#3ddc97':'#ff5d6c');
+  say(LINES[lang][res][rnd(2)]);updateUI();
+  await sleep(450);if(M!==me)return;
+  if(me.r===3&&me.shots===2&&!me.clutchDone&&me.shots<me.max){me.clutchDone=true;await clutchVote(me);if(M!==me)return}
+  if(me.shots>=me.max)endRound();else{me.busy=false;meter.on=true;updateUI()}
+}
+function clutchVote(me){return new Promise(res=>{
+  me.cres=res;
+  const opts=[['cl1t','cl1d'],['cl2t','cl2d'],['cl3t','cl3d']];
+  $('#ovh').innerHTML=`<div class="ov"><div class="ovc"><div><div class="eyebrow">${t('clT')} <span class="pill">${t('partnerSlot')}</span></div><p class="sub" style="margin:6px 0 0">${t('clSub')}</p></div>
+  ${opts.map((o,i)=>`<button class="opt" data-a="cvote" data-v="${i}"><b>${t(o[0])}</b><span>${t(o[1])}</span></button>`).join('')}</div></div>`;
+})}
+function mysteryReveal(me){return new Promise(res=>{
+  me.mres=res;
+  $('#ovh').innerHTML=`<div class="ov"><div class="ovc"><div class="seal"><div class="eyebrow">${t('mysT')} <span class="pill">${t('partnerSlot')}</span></div><b>${t('mysT')}</b><p class="sub" style="margin:8px 0 0">${t('mysSub')}</p></div><button class="btn lg" data-a="mreveal">${t('mysBtn')}</button></div></div>`;
+})}
+async function endRound(){
+  const me=M;me.busy=true;meter.on=false;say(t('rivalsBall'));updateUI();
+  await sleep(800);if(M!==me)return;
+  let bm=me.mb.reduce((a,r)=>a+botScore(r),0),bo=me.rb.reduce((a,r)=>a+botScore(r),0);
+  if(me.lock){bo=Math.round(bo*.6);me.lock=false}
+  if(me.lockQ4&&me.r===3)bo=Math.round(bo*.7);
+  let note='';
+  if(me.r===me.rq){
+    const c=me.rc;
+    if(c==='double')bo=Math.round(bo*1.5);if(c==='hot')bo+=4;if(c==='fast')bo+=5;if(c==='lock')bm=Math.round(bm*.6);if(c==='sixth')bo+=3;
+    note=' '+t('rivalPlay',t('c_'+c),me.r+1);
+  }
+  me.sc[0]+=bm;me.sc[1]+=bo;
+  say(t('recap',me.r+1,me.up,bm,bo)+note);updateUI();
+  await sleep(1900);if(M!==me)return;
+  if(me.r===1){await mysteryReveal(me);if(M!==me)return}
+  me.r++;
+  if(me.r>=4)finish();else startRound();
+}
+function finish(){
+  while(M.sc[0]===M.sc[1]){M.sc[0]+=rnd(4);M.sc[1]+=rnd(4)}
+  const w=M.sc[0]>M.sc[1];M.win=w;
+  let counted=false,fp=0;
+  if(G.playsToday<DAILY_PLAYS){counted=true;fp=10+(w?15:0);gain(fp);G.playsToday++;G.x.players=1}
+  G.playsAll++;M.rw={fp,counted};M.stage='end';meter.on=false;draw();
+}
+
+/* ================= FAN ZONE ================= */
+const CH=[
+{id:'c1',fp:40,key:'ch1',prog:()=>[Math.min(G.playsToday,DAILY_PLAYS),DAILY_PLAYS]},
+{id:'c2',fp:30,key:'ch2',prog:()=>[(G.pred?1:0)+(G.mvp!==null?1:0),2]},
+{id:'c3',fp:30,key:'ch3',prog:()=>[Math.min(G.refsToday,1),1]}];
+SC.zone=()=>{
+  const A=TM(FIX.a),B=TM(FIX.b);
+  const pred=G.pred?`<p style="margin:10px 0 0"><span class="badge">${t('predLocked',tname(G.pred))}</span></p>`:`<div class="row"><button class="btn" style="background:${A.c}" data-a="pred" data-v="${A.id}">${tname(A.id)}</button><button class="btn" style="background:${B.c}" data-a="pred" data-v="${B.id}">${tname(B.id)}</button></div>`;
+  let res='';
+  if(G.predRes)res=`<div class="note"><b>${t('resIs',tname(G.predRes.win))}</b><p>${G.pred?(G.predRes.right?t('right'):t('wrong')):''}</p></div>`;
+  else if(G.pred)res=`<div class="row"><button class="btn ghost sm" data-a="simres">${t('simRes')}</button></div>`;
+  const tot=MVPBASE.reduce((a,b)=>a+b,0)+(G.mvp!==null?1:0);
+  const mvp=PLAYERS.map((p,i)=>{
+    const v=MVPBASE[i]+(G.mvp===i?1:0),pc=Math.round(v/tot*100);
+    return G.mvp===null?`<button class="opt" data-a="mvp" data-v="${i}"><b>${p}</b><span>${tname(i===0?'feed':i===1?'sanad':'feed')}</span></button>`
+      :`<div class="opt ${G.mvp===i?'sel':''}" style="cursor:default"><b>${p}</b><span>${G.mvp===i?t('mvpDone'):''}</span><div class="pc">${pc}%</div><div class="bar"><i style="width:${pc}%;background:var(--blue)"></i></div></div>`}).join('');
+  const chs=CH.map(c=>{const [a,b]=c.prog(),done=a>=b,cl=G.chClaimed[c.id];
+    return `<div class="ch"><div><b>${t(c.key)}</b> <span class="mut">${a}/${b}</span><div class="bar"><i style="width:${a/b*100}%"></i></div></div>
+    <button class="btn sm ${cl?'ghost':''}" data-a="chclaim" data-v="${c.id}" ${(!done||cl)?'disabled':''}>${cl?t('claimedL'):t('claimCh',c.fp)}</button></div>`}).join('');
+  return `<h2 class="big sm">${t('zoneT')}</h2><p class="sub">${t('zoneSub')}</p>
+  <div class="grid2"><div class="col">
+  <section class="panel"><div class="eyebrow">${t('predT')} · ${t('gameDay',G.day)}</div><p class="mut" style="margin:6px 0 0">${t('predSub')}</p>
+    <div class="fx" style="margin-top:12px"><b style="color:${A.c}">${tname(A.id)}</b><i>VS</i><b style="color:${B.c}">${tname(B.id)}</b></div>${pred}${res}</section>
+  <section class="panel"><div class="eyebrow">${t('mvpT')} <span class="pill">${t('partnerSlot')}</span></div><p class="mut" style="margin:6px 0 10px">${t('mvpSub')}</p><div style="display:grid;gap:8px">${mvp}</div></section>
+  </div><div class="col"><section class="panel"><div class="eyebrow">${t('chT')}</div>${chs}</section></div></div>`;
+};
+
+/* ================= ARENA ================= */
+const RW=[
+{id:'wall',cost:50,key:'rwWall',kind:'digital'},
+{id:'cut',cost:100,key:'rwCut',kind:'digital'},
+{id:'slot',cost:200,key:'rwSlot',kind:'slot',needIn:true,cap:'slot'},
+{id:'vch',cost:300,key:'rwVoucher',kind:'vch',cap:'vch'},
+{id:'prio',cost:400,key:'rwPrio',kind:'prio',needIn:true,cap:'prio'}];
+const needsIn=r=>r.id==='vch'?G.cfg.needIn:!!r.needIn;
+function rwState(r){
+  if(G.claimed[r.id])return 'claimed';
+  if(needsIn(r)&&!G.inn)return 'needIn';
+  if(G.fp<r.cost)return 'needFP';
+  if((r.cap==='slot'||r.cap==='prio')&&capLeft(r.cap)<=0)return 'full';
+  return 'ok';
+}
+function leftText(r){
+  if(r.cap==='vch')return t('left',vLeft(),G.cfg.pool);
+  if(r.cap==='slot'||r.cap==='prio')return t('left',capLeft(r.cap),CAPS[r.cap]);
+  return '';
+}
+SC.arena=()=>{
+  let passP;
+  if(!G.verified){
+    passP=`<div class="eyebrow">${t('verT')}</div><p class="sub" style="margin:6px 0 0">${t('verD')}</p>
+    <div class="fld"><label for="ph">${t('phone')}</label><input class="fi" id="ph" inputmode="tel" autocomplete="tel" placeholder="+962 7X XXX XXXX"></div>
+    <label class="chk"><input type="checkbox" id="cons" ${G.consent?'checked':''}><span>${t('consent')}</span></label>
+    <div class="row"><button class="btn" data-a="verify">${t('verBtn')}</button></div>`;
+  }else if(!G.pass){
+    passP=`<div class="eyebrow">${t('passT')} · ${t('gameDay',G.day)}</div>
+    <div class="fx" style="margin-top:10px"><b style="color:${TM(FIX.a).c}">${tname(FIX.a)}</b><i>VS</i><b style="color:${TM(FIX.b).c}">${tname(FIX.b)}</b></div>
+    <p class="mut" style="margin:0">${t('fixture')}</p><div class="row"><button class="btn lg" data-a="reserve">${t('reserve')}</button></div>`;
+  }else{
+    passP=`<div class="eyebrow">${t('passT')} · ${t('gameDay',G.day)}</div>
+    <div class="tk" style="margin-top:10px"><div><div class="mut">${t('passCode')}</div><div class="code">${G.pass.code}</div>
+    <div style="margin-top:8px"><span class="badge ${G.inn?'':'warn'}">${G.inn?t('stI'):t('stR')}</span></div>
+    <div class="row" style="margin-top:10px">${G.inn?`<button class="btn ghost sm" data-a="friendIn">${t('friendBtn')}</button>`:`<button class="btn" data-a="scanGate">${t('scanGate')}</button>`}</div>
+    <div class="mut" style="margin-top:6px">${t('demoCode')}</div></div><div class="qr">${qr(G.pass.code)}</div></div>`;
+  }
+  const list=RW.map(r=>{
+    const s=rwState(r),reason=s==='needIn'?t('needIn'):s==='needFP'?t('needFP',r.cost):s==='full'?t('full'):'';
+    const lt=leftText(r);
+    return `<div class="rwc"><div><b>${t(r.key)}</b><div class="mut">${t('costFP',r.cost)}${lt?' · '+lt:''}${reason&&s!=='ok'?' · '+reason:''}</div>${r.kind==='vch'?`<div class="mut">JOD ${fmt(G.cfg.val)} · ${t('exp',G.cfg.expH)} · ${t('oneUse')}</div>`:''}</div>
+    <button class="btn sm ${s==='claimed'?'ghost':''}" data-a="claimrw" data-v="${r.id}" ${s==='ok'?'':'disabled'}>${s==='claimed'?t('claimedL'):t('claim')}</button></div>`}).join('');
+  const items=G.items.length?G.items.map(it=>{
+    if(!it.code)return `<div class="srow"><span><b>${t(it.key)}</b></span><span class="badge">${t('unlocked')}</span></div>`;
+    const h=it.exp?Math.max(0,Math.ceil((it.exp-Date.now())/36e5)):0;
+    return `<article class="tk"><div><div class="code">${it.code}</div><div style="margin-top:6px;font-weight:700">${t(it.key)}${it.kind==='vch'?' · JOD '+fmt(it.val):''}</div>
+    <div class="mut" style="margin-top:4px">${it.exp?t('exp',h)+' · ':''}${t('oneUse')}</div>
+    <div class="row" style="margin-top:8px">${it.used?`<span class="badge">${t('usedL')}</span>`:`<button class="btn ghost sm" data-a="scan" data-v="${it.code}">${t('sc_'+it.kind)}</button>`}</div>
+    <div class="mut" style="margin-top:6px">${t('demoCode')}</div></div><div class="qr">${qr(it.code)}</div></article>`}).join(''):`<p class="mut">${t('noCodes')}</p>`;
+  return `<h2 class="big sm">${t('arenaT')}</h2><p class="sub">${t('arenaSub')}</p>
+  <div class="grid2"><div class="col"><section class="panel">${passP}</section>
+  <section class="panel"><div class="eyebrow">${t('codesT')}</div><div style="display:grid;gap:10px;margin-top:10px">${items}</div></section></div>
+  <div class="col"><section class="panel"><div class="eyebrow">${t('rwT')} · ${G.fp} ${t('fp')}</div><p class="mut" style="margin:6px 0 0">${t('rwSub')}</p><div style="margin-top:6px">${list}</div></section></div></div>`;
+};
+function claimReward(id){
+  const r=RW.find(x=>x.id===id);if(!r||rwState(r)!=='ok')return;
+  G.fp-=r.cost;G.claimed[id]=true;
+  const code=p=>'HM-'+p+Math.random().toString(36).slice(2,6).toUpperCase();
+  if(r.kind==='digital'){G.items.push({key:r.key,kind:'digital',code:null});toast(t('unlocked'))}
+  else if(r.kind==='vch'){
+    if(vLeft()<=0){G.fp+=r.cost;G.items.push({key:'rwBadge',kind:'digital',code:null});toast(t('poolFull'))}
+    else{G.x.claimed++;G.items.push({key:r.key,kind:'vch',code:code('V'),val:G.cfg.val,exp:Date.now()+G.cfg.expH*36e5,used:false});toast(t('claimOk'))}
+  }else if(r.kind==='slot'){G.x.slots++;G.items.push({key:r.key,kind:'slot',code:code('S'),exp:0,used:false});toast(t('claimOk'))}
+  else{G.x.prio++;G.items.push({key:r.key,kind:'prio',code:code('P'),exp:0,used:false});toast(t('claimOk'))}
+  draw();
+}
+function scanCode(c){
+  const it=G.items.find(x=>x.code===c);if(!it)return;
+  if(it.used){toast(t('dupBlocked'));return}
+  it.used=true;if(it.kind==='vch')G.x.redeemed++;
+  toast(t('vOk'));draw();
+}
+
+/* ================= PARTNER ================= */
+function partnerParts(){
+  const B=base,X=G.x;
+  const claimed=Math.min(G.cfg.pool,vUsed());
+  const redeemed=Math.min(claimed,B('redeemed')+X.redeemed);
+  const steps=[
+    [t('fn1'),B('played')+X.players,0],[t('fn2'),B('engaged')+X.engaged,0],[t('fn3'),B('pass')+X.pass,0],
+    [t('fn4'),B('inn')+X.inn,1],[t('fn5'),claimed,0],[t('fn6'),redeemed,1]];
+  const mx=Math.max(1,steps[0][1],steps[1][1]);
+  const fun=steps.map(s=>`<div class="fr ${s[2]?'real':''}"><span>${s[0]}${s[2]?` · ${t('verified')}`:''}</span><b>${s[1]}</b><div class="bar"><i style="width:${clamp(s[1]/mx*100,0,100)}%;${s[2]?'background:var(--ball)':''}"></i></div></div>`).join('');
+  const kp=[[t('rp1'),B('played')+X.players],[t('rp2'),B('votes')+X.votes],[t('rp3'),B('slots')+X.slots],[t('rp4'),B('inn')+X.inn],[t('rp5'),redeemed],[t('rp6'),B('optin')+(G.consent&&G.verified?1:0)]]
+    .map(k=>`<div><b>${k[1]}</b>${k[0]}</div>`).join('');
+  const cost=G.cfg.pool*G.cfg.val;
+  const max=`<div class="max">JOD ${fmt(cost)}</div><div class="mut">${t('maxCost')}</div><p class="mut" style="margin:6px 0 0">${t('maxNote',G.cfg.pool,fmt(G.cfg.val))}</p><p class="mut" style="margin:6px 0 0">${t('issuedL',claimed,G.cfg.pool)}</p>`;
+  return {fun,kp,max};
+}
+function refreshPartner(){
+  const p=partnerParts(),a=$('#pfun'),b=$('#pkpi'),c=$('#pmax');
+  if(a)a.innerHTML=p.fun;if(b)b.innerHTML=p.kp;if(c)c.innerHTML=p.max;
+}
+SC.partner=()=>{
+  const S=G.sample,P=partnerParts();
+  const safe=['sf1','sf2','sf3','sf4','sf5','sf6','sf7'].map(k=>`<li>${t(k)}</li>`).join('');
+  return `<h2 class="big sm">${t('parT')}</h2><p class="sub">${t('parSub')}</p>
+  <div class="grid2"><div class="col">
+  <section class="panel"><div class="eyebrow">${t('funT')}</div>
+    <div class="row" style="margin-top:8px"><button class="btn sm ${S?'':'ghost'}" data-a="sample" data-v="1">${t('sample')}</button><button class="btn sm ${S?'ghost':''}" data-a="sample" data-v="0">${t('live')}</button></div>
+    <p class="mut" style="margin:8px 0 0">${S?t('sampleNote'):''}</p><div class="fun" id="pfun">${P.fun}</div></section>
+  <section class="panel"><div class="eyebrow">${t('repT')}</div><div class="kpis" id="pkpi">${P.kp}</div></section>
+  </div><div class="col">
+  <section class="panel"><div class="eyebrow">${t('ctrlT')}</div>
+    <div class="cfg" style="margin-top:10px">
+      <div class="fld" style="margin:0"><label for="cpool">${t('pool')}</label><input class="fi" id="cpool" type="number" min="0" step="1" value="${G.cfg.pool}" data-cfg="pool"></div>
+      <div class="fld" style="margin:0"><label for="cval">${t('val')}</label><input class="fi" id="cval" type="number" min="0" step="0.5" value="${G.cfg.val}" data-cfg="val"></div>
+      <div class="fld" style="margin:0"><label for="cexp">${t('expH')}</label><input class="fi" id="cexp" type="number" min="1" step="1" value="${G.cfg.expH}" data-cfg="expH"></div></div>
+    <label class="chk"><input type="checkbox" id="cin" data-cfg="needIn" ${G.cfg.needIn?'checked':''}><span>${t('needInL')}</span></label>
+    <div id="pmax">${P.max}</div></section>
+  <section class="panel"><div class="eyebrow">${t('safeT')}</div><ul class="safe">${safe}</ul></section>
+  <section class="panel"><div class="eyebrow">${t('demoT')}</div><div class="row" style="margin-top:8px">
+    <button class="btn ghost sm" data-a="dFP">${t('dFP')}</button><button class="btn ghost sm" data-a="dFriend">${t('dFriend')}</button><button class="btn ghost sm" data-a="dDay">${t('dDay')}</button><button class="btn ghost sm" data-a="dEmpty">${t('dEmpty')}</button><button class="btn ghost sm" data-a="dReset">${t('dReset')}</button></div></section>
+  </div></div>`;
+};
+
+/* ================= court rendering ================= */
+let cv=null,cx=null,raise=0,held=true,net=0;
+const ball={x:0,y:0,v:false};
+let floats=[];
+const H={x:806,y:200};
+const CROWD=Array.from({length:170},()=>({x:Math.random()*960,y:30+Math.random()*190,r:3+Math.random()*3.5,c:['#4f8cff','#ff7a2f','#e9e4d6','#8aa0d8'][rnd(4)],a:.22+Math.random()*.35}));
+function pushFloat(s,col){floats.push({s,col,x:H.x-40,y:150,t0:performance.now()})}
+function tween(ms,fn){return new Promise(res=>{const s=performance.now();(function f(n){const u=clamp((n-s)/ms,0,1);fn(u);if(u<1)requestAnimationFrame(f);else res()})(s)})}
+async function animShot(res){
+  const A={x:332,y:246};
+  await tween(260,u=>{raise=u});
+  held=false;ball.v=true;
+  const to=res==='swish'?{x:H.x,y:H.y+4}:res==='rim'?{x:H.x-12,y:H.y-4}:{x:H.x-36,y:H.y-2};
+  await tween(900,u=>{ball.x=A.x+(to.x-A.x)*u;ball.y=A.y+(to.y-A.y)*u-4*150*u*(1-u)});
+  if(res==='swish'){net=1;await tween(380,u=>{ball.x=H.x;ball.y=H.y+4+u*u*90})}
+  else if(res==='rim'){
+    net=.7;
+    await tween(240,u=>{ball.x=to.x+(H.x-to.x)*u;ball.y=to.y-4*34*u*(1-u)});
+    await tween(320,u=>{ball.x=H.x;ball.y=H.y+u*u*90});
+  }else{
+    const fy=420;
+    await tween(620,u=>{ball.x=to.x-150*u;ball.y=to.y-170*u+(fy-to.y+170)*u*u});
+    await tween(340,u=>{ball.x=to.x-150-50*u;ball.y=fy-4*60*u*(1-u)});
+  }
+  ball.v=false;await sleep(250);
+  await tween(250,u=>{raise=1-u});held=true;
+}
+const rr=(c,x,y,w,h,r)=>{c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()};
+function person(c,x,fy,s,col,ra,skin){
+  c.save();c.lineCap='round';c.lineJoin='round';
+  c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(x,fy+2,28*s,7*s,0,0,6.283);c.fill();
+  c.strokeStyle='#161d3d';c.lineWidth=11*s;
+  c.beginPath();c.moveTo(x-8*s,fy-60*s);c.lineTo(x-12*s,fy-4*s);c.moveTo(x+8*s,fy-60*s);c.lineTo(x+12*s,fy-4*s);c.stroke();
+  c.strokeStyle='#e9e4d6';c.lineWidth=7*s;
+  c.beginPath();c.moveTo(x-12*s,fy-1*s);c.lineTo(x-22*s,fy-1*s);c.moveTo(x+12*s,fy-1*s);c.lineTo(x+22*s,fy-1*s);c.stroke();
+  c.fillStyle=col;rr(c,x-19*s,fy-84*s,38*s,30*s,6*s);c.fill();
+  rr(c,x-20*s,fy-130*s,40*s,52*s,10*s);c.fill();
+  c.fillStyle='rgba(255,255,255,.85)';c.fillRect(x-20*s,fy-104*s,40*s,4*s);
+  c.strokeStyle=skin;c.lineWidth=9*s;
+  const sy=fy-120*s;
+  [-1,1].forEach(d=>{
+    const hx=(x+d*24*s)+((x+d*12*s+(d>0?10*s:0))-(x+d*24*s))*ra;
+    const hy=(fy-78*s)+((fy-188*s)-(fy-78*s))*ra;
+    c.beginPath();c.moveTo(x+d*20*s,sy);c.lineTo(hx,hy);c.stroke();
+  });
+  c.fillStyle=skin;c.beginPath();c.arc(x,fy-144*s,13*s,0,6.283);c.fill();
+  c.fillStyle='#1a1410';c.beginPath();c.arc(x,fy-146*s,13*s,Math.PI,0);c.fill();
+  c.restore();
+}
+function drawBall(c,x,y){
+  c.save();c.translate(x,y);
+  const g=c.createRadialGradient(-4,-5,2,0,0,14);g.addColorStop(0,'#ff9a57');g.addColorStop(.6,'#ff7a2f');g.addColorStop(1,'#c9490d');
+  c.fillStyle=g;c.beginPath();c.arc(0,0,13,0,6.283);c.fill();
+  c.strokeStyle='#7a2a06';c.lineWidth=1.6;
+  c.beginPath();c.arc(0,0,13,0,6.283);c.moveTo(-13,0);c.lineTo(13,0);c.moveTo(0,-13);c.lineTo(0,13);
+  c.moveTo(-9,-9);c.quadraticCurveTo(-3,0,-9,9);c.moveTo(9,-9);c.quadraticCurveTo(3,0,9,9);c.stroke();
+  c.restore();
+}
+function drawCourt(ts,dt){
+  const c=cx,k=cv.width/960;
+  c.setTransform(k,0,0,k,0,0);c.clearRect(0,0,960,504);
+  let g=c.createLinearGradient(0,0,0,330);g.addColorStop(0,'#0b1230');g.addColorStop(1,'#1c2954');c.fillStyle=g;c.fillRect(0,0,960,330);
+  CROWD.forEach((d,i)=>{c.globalAlpha=d.a*(.75+.25*Math.sin(ts/600+i));c.fillStyle=d.c;c.beginPath();c.arc(d.x,d.y,d.r,0,6.283);c.fill()});
+  c.globalAlpha=1;
+  g=c.createLinearGradient(0,330,0,504);g.addColorStop(0,'#b57a3e');g.addColorStop(1,'#d9a05c');c.fillStyle=g;c.fillRect(0,330,960,174);
+  c.strokeStyle='rgba(60,30,5,.18)';c.lineWidth=1.5;
+  for(let i=-6;i<=22;i++){c.beginPath();c.moveTo(480+(i*60-480)*.62,330);c.lineTo(i*60,504);c.stroke()}
+  c.strokeStyle='rgba(243,239,230,.85)';c.lineWidth=3;
+  c.beginPath();c.moveTo(0,331);c.lineTo(960,331);c.stroke();
+  c.fillStyle='rgba(79,140,255,.28)';c.beginPath();c.moveTo(700,340);c.lineTo(960,340);c.lineTo(960,478);c.lineTo(660,478);c.closePath();c.fill();c.stroke();
+  c.beginPath();c.ellipse(680,409,38,66,0,Math.PI/2,Math.PI*1.5);c.stroke();
+  c.lineWidth=2.5;c.beginPath();c.ellipse(870,404,390,74,0,Math.PI/2,Math.PI*1.5);c.stroke();
+  c.fillStyle='#2a3566';c.fillRect(898,110,14,235);
+  c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(905,348,34,8,0,0,6.283);c.fill();
+  c.fillStyle='#2a3566';c.fillRect(852,150,50,10);
+  c.fillStyle='rgba(243,239,230,.9)';c.fillRect(842,118,12,100);
+  c.strokeStyle='#4f8cff';c.lineWidth=3;c.strokeRect(842,118,12,100);
+  c.strokeStyle='#d8511a';c.lineWidth=4;
+  c.beginPath();c.ellipse(H.x,H.y,34,6,0,Math.PI,Math.PI*2);c.stroke();
+  net*=Math.pow(.94,dt*60);
+  const sw=net*Math.sin(ts/45)*5;
+  c.strokeStyle='rgba(243,239,230,.7)';c.lineWidth=1.4;
+  for(let i=0;i<=6;i++){const tx=H.x-32+i*(64/6),bx=H.x-18+i*(36/6)+sw;c.beginPath();c.moveTo(tx,H.y+3);c.lineTo(bx,H.y+50);c.stroke()}
+  [.35,.7,1].forEach(f=>{c.beginPath();c.moveTo(H.x-32+(14*f)+sw*f*.5,H.y+3+47*f);c.lineTo(H.x+32-(14*f)+sw*f*.5,H.y+3+47*f);c.stroke()});
+  const mine=TM(G.team||'feed').c,opp=TM(M?M.rival:'sanad').c;
+  const items=[];
+  const sc=fy=>.62+(fy-331)*.0033;
+  [[100,420],[170,362],[215,468],[60,372]].forEach(([x,fy])=>items.push({x,fy,s:sc(fy),col:mine,ra:.15,skin:'#d9a77c'}));
+  [[382,425,.95],[470,372,.8],[560,415,.85],[650,355,.7],[740,452,.75]].forEach(([x,fy,r])=>items.push({x,fy,s:sc(fy),col:opp,ra:r,skin:'#c68b5f'}));
+  items.push({x:300,fy:430,s:sc(430),col:mine,ra:raise,skin:'#e0b48a'});
+  items.sort((a,b)=>a.fy-b.fy);
+  items.forEach(p=>{const bob=(p.x===300)?0:Math.sin(ts/380+p.x)*1.6;person(c,p.x,p.fy+bob,p.s,p.col,p.ra,p.skin)});
+  if(held)drawBall(c,318+14*raise,330-84*raise);
+  else if(ball.v)drawBall(c,ball.x,ball.y);
+  c.strokeStyle='#ff7a2f';c.lineWidth=4.5;c.beginPath();c.ellipse(H.x,H.y,34,6,0,0,Math.PI);c.stroke();
+  const now=performance.now();
+  floats=floats.filter(f=>now-f.t0<1300);
+  floats.forEach(f=>{const a=(now-f.t0)/1300;c.globalAlpha=clamp(1-a,0,1);c.fillStyle=f.col;c.font='900 40px "Big Shoulders Display",Impact,sans-serif';c.textAlign='center';c.fillText(f.s,f.x,f.y-a*50)});
+  c.globalAlpha=1;
+  const v=c.createRadialGradient(480,260,260,480,260,560);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(5,8,18,.5)');c.fillStyle=v;c.fillRect(0,0,960,504);
+}
+let last=0;
+function tick(ts){
+  const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  if(meter.on){
+    meter.pos+=meter.dir*.9*dt;
+    if(meter.pos>=1){meter.pos=1;meter.dir=-1}
+    if(meter.pos<=0){meter.pos=0;meter.dir=1}
+  }
+  const d=$('#mdot');if(d)d.style.left=(meter.pos*100)+'%';
+  if(cv&&document.body.contains(cv)&&cx)drawCourt(ts,dt);
+  requestAnimationFrame(tick);
+}
+
+/* ================= render and actions ================= */
+let lastTab=null;
+function draw(){
+  const s=$('#screen');
+  const top=lastTab===G.tab?s.scrollTop:0;
+  const inMatch=!!(M&&M.stage==='play'&&G.tab==='play');
+  s.innerHTML=SC[G.tab]();
+  if(!inMatch){cv=null;cx=null}
+  meter.on=false;
+  if(AF[G.tab])AF[G.tab]();
+  hud();nav();
+  $('#app').classList.toggle('inmatch',inMatch);
+  s.scrollTop=top;lastTab=G.tab;
+}
+function go(tab){
+  if(M&&tab!=='play'&&M.stage!=='play')M=null;
+  G.tab=tab;draw();
+}
+function nextDay(){
+  G.day++;G.playsToday=0;G.pred=null;G.predRes=null;G.mvp=null;G.refsToday=0;G.chClaimed={};
+  G.pass=null;G.inn=false;G.friendsIn=0;G.claimed={};
+  G.x={players:0,engaged:0,pass:0,inn:0,claimed:0,redeemed:0,slots:0,prio:0,votes:0};
+  toast(t('dayNew'));draw();
+}
+const A={
+  tab:v=>go(v),
+  lang:()=>{lang=lang==='ar'?'en':'ar';try{localStorage.setItem('hm_lang',lang)}catch(e){}applyLang();draw()},
+  team:v=>{G.team=v;draw()},
+  tip:()=>{M=newMatch();draw()},
+  flipc:(v,b)=>{const i=+v;if(!M||M.stage!=='draw')return;M.f[i]=true;b.classList.add('f');const sb=$('#startBtn');if(sb&&M.f[0]&&M.f[1])sb.disabled=false},
+  start:()=>{if(!M||!(M.f[0]&&M.f[1]))return;M.stage='play';draw()},
+  shoot:()=>shootAny(),
+  card:()=>useCard(),
+  leave:()=>{M=null;$('#ovh').innerHTML='';draw()},
+  again:()=>{M=newMatch();draw()},
+  copyInv:()=>{try{navigator.clipboard.writeText(G.inv).then(()=>toast(t('copied')),()=>toast(G.inv))}catch(e){toast(G.inv)}},
+  cvote:v=>{
+    const me=M;if(!me||!me.cres)return;
+    const i=+v,w=[20+rnd(40),20+rnd(40),20+rnd(40)];w[i]+=25;
+    const tot=w[0]+w[1]+w[2],pc=w.map(x=>Math.round(x/tot*100)),win=w.indexOf(Math.max(...w));
+    const names=['cl1t','cl2t','cl3t'],desc=['cl1d','cl2d','cl3d'];
+    $('#ovh').innerHTML=`<div class="ov"><div class="ovc"><div class="eyebrow">${t('clT')}</div>${names.map((n,k)=>`<div class="opt ${k===win?'win':''} ${k===i?'sel':''}" style="cursor:default"><b>${t(n)}</b><span>${t(desc[k])}</span><div class="pc">${pc[k]}%</div><div class="bar"><i style="width:${pc[k]}%;background:${k===win?'var(--good)':'var(--blue)'}"></i></div></div>`).join('')}<p class="sub" style="margin:0">${t('clWin',t(names[win]))}</p></div></div>`;
+    setTimeout(()=>{
+      if(M===me){
+        if(win===0)me.wide=true;if(win===1)me.max+=1;if(win===2)me.lockQ4=true;
+        say(t('clWin',t(names[win])));
+      }
+      $('#ovh').innerHTML='';const r=me.cres;me.cres=null;if(r)r();
+    },2300);
+  },
+  mreveal:()=>{
+    const me=M;if(!me||!me.mres)return;
+    const k=1+rnd(3);
+    if(k===1)me.sc[0]+=4;if(k===2)me.chal=true;if(k===3)me.extra+=1;
+    $('#ovh').innerHTML=`<div class="ov"><div class="ovc"><div class="seal"><div class="eyebrow">${t('mysT')}</div><b>${t('my'+k)}</b></div></div></div>`;
+    setTimeout(()=>{$('#ovh').innerHTML='';const r=me.mres;me.mres=null;if(M===me){say(t('my'+k));updateUI()}if(r)r()},2200);
+  },
+  pred:v=>{if(G.pred)return;G.pred=v;gain(5);G.x.engaged=1;G.x.votes++;toast(t('predLocked',tname(v)));draw()},
+  simres:()=>{
+    if(!G.pred||G.predRes)return;
+    const win=Math.random()<.5?FIX.a:FIX.b,right=win===G.pred;
+    G.predRes={win,right};if(right)gain(20);draw();
+  },
+  mvp:v=>{if(G.mvp!==null)return;G.mvp=+v;gain(10);G.x.engaged=1;G.x.votes++;toast(t('mvpDone'));draw()},
+  chclaim:v=>{const c=CH.find(x=>x.id===v);if(!c||G.chClaimed[v])return;const [a,b]=c.prog();if(a<b)return;G.chClaimed[v]=true;gain(c.fp);draw()},
+  verify:()=>{
+    const ph=($('#ph')||{}).value||'';
+    if(ph.replace(/\D/g,'').length<8){toast(t('verBad'));return}
+    G.verified=true;G.consent=!!($('#cons')&&$('#cons').checked);toast(t('verOk'));draw();
+  },
+  reserve:()=>{if(!G.verified||G.pass)return;G.pass={code:'HM-A'+Math.random().toString(36).slice(2,6).toUpperCase()};G.x.pass=1;draw()},
+  scanGate:()=>{if(!G.pass||G.inn)return;G.inn=true;G.x.inn=1;gain(150);toast(t('inOk'));draw()},
+  friendIn:()=>{if(!G.inn)return;if(G.friendsIn>=4){toast(t('friendMax'));return}G.friendsIn++;gain(50);toast(t('friendOk'));draw()},
+  claimrw:v=>claimReward(v),
+  scan:v=>scanCode(v),
+  sample:v=>{G.sample=v==='1';draw()},
+  dFP:()=>{gain(100);draw()},
+  dFriend:()=>{if(G.refsToday>=5){toast(t('friendCap'));return}G.refsToday++;G.refsAll++;gain(30);toast(t('friendJoin'));draw()},
+  dDay:()=>nextDay(),
+  dEmpty:()=>{G.x.claimed+=vLeft();toast(t('full'));draw()},
+  dReset:()=>{M=null;$('#ovh').innerHTML='';G=init();draw()}
+};
+function shootAny(){if(G.tab==='play'&&M&&M.stage==='play')shoot()}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const f=A[b.dataset.a];if(f)f(b.dataset.v,b)});
+document.addEventListener('change',e=>{
+  const el=e.target.closest('[data-cfg]');if(!el)return;
+  const k=el.dataset.cfg;
+  if(k==='needIn')G.cfg.needIn=el.checked;
+  else{let v=parseFloat(el.value);if(!isFinite(v)||v<0)v=0;if(k==='pool'||k==='expH')v=Math.floor(v);if(k==='expH'&&v<1)v=1;G.cfg[k]=v}
+  if(G.tab==='partner')refreshPartner();else draw();
+});
+document.addEventListener('keydown',e=>{
+  if(e.code!=='Space')return;
+  if(!(G.tab==='play'&&M&&M.stage==='play'))return;
+  if(e.target&&(e.target.tagName==='INPUT'))return;
+  e.preventDefault();
+  if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+  if(!e.repeat)shootAny();
+});
+
+applyLang();
+draw();
+requestAnimationFrame(tick);
+})();
+</script>
+
+</body></html>
